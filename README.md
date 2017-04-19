@@ -17,4 +17,4 @@ WebParameter / WebService
 
 Testing will use
 - Selenium 2
-- TestNG.
+- TestNG
