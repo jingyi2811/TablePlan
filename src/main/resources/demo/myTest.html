@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test drag and drop</title>
+	<script src = "../build/interact.min.js"></script>
+	<script src = "../build/jquery.min.js"></script>
+	<script src = "../build/react.js"></script>
+	<script src = "../build/react-dom.js"></script>
+	<script src = "../build/browser.min.js"></script>
+	<style>
+	
+	/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	
+	line-height: 1;
+}
+html, body {
+    margin: 0;
+    height: 100%;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+#drag-1, #drag-2 {
+	width: 200px;
+	height: 100px;
+	
+	box-sizing: border-box;
+
+	background-color: #29e;
+	color: white;
+
+	border-radius: 20px;
+	padding: 4%;
+
+	-webkit-transform: translate(0px, 0px);
+	      transform: translate(0px, 0px);
+}
+.draggable:active{
+	opacity: 0.7;
+	border: 0.14em solid red;
+}
+
+#drag-me::before {
+  content: "#" attr(id);
+  font-weight: bold;
+}
+.des
+{
+	height: auto;
+	background-color: rgb(40,40,40);
+	color: white;
+	width: auto;
+	position: fixed;
+	padding: 3px;
+	border-radius: 8px;
+	display: none;
+	min-width: 80px;
+    min-height: 16px;
+}
+.size
+{
+	position: fixed; /* or absolute */
+  	top: 50%;
+    left: 45%;
+}
+.resize-drag {
+  background-color: red;
+  color: white;
+  font-size: 16px;
+  font-family: sans-serif;
+  border-radius: 8px;
+  margin: 30px 20px;
+  overflow: hidden;
+  width: 100px;
+  height: 80px;
+  position: absolute;
+  /* This makes things *much* easier */
+  box-sizing: border-box;
+}
+.resize-container {
+  width: 100%;
+  height: auto;
+}
+
+</style>
+</head>
+<body>
+<div id = "layout"></div>
+
+<script type="text/babel">
+var GrabBox = React.createClass(
+{
+	render : function()
+	{
+		return (
+			<div>
+			{
+				React.Children.map(this.props.children,function(child)
+				{
+
+					var bcolor = child.props.children;
+					return(
+					<div className="resize-container">
+						<div className="resize-drag" style = {{backgroundColor : bcolor}}>
+							<div className='size'></div>
+							<div className='des'></div>
+						</div>
+					</div>			
+					)
+				})
+			}
+			</div>
+		);
+	}
+});
+ReactDOM.render(<GrabBox>
+<span>#2299EE</span>
+<span>#11DDDD</span>
+<span>#FF33FF</span>
+<span>#88CEDD</span>
+<span>#CC00EF</span>
+</GrabBox>,document.getElementById('layout'));
+</script>
+
+<script type="text/javascript">
+interact('.resize-drag')
+  .draggable({
+    // call this function before dragmove event
+    onstart : dragStartListener,
+    // call this function on every dragmove event
+    onmove: dragMoveListener,
+    // call this function on every dragend event
+    onend: dragEndListener
+  })
+  .resizable({
+    edges: { left: true, right: true, bottom: true, top: true },
+    onmove : resizeListener,
+  })
+  .on('resizemove', function (event) {
+    var target = event.target,
+        x = (parseFloat(target.getAttribute('data-x')) || 0),
+        y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+    // update the element's style
+    target.style.width  = event.rect.width + 'px';
+    target.style.height = event.rect.height + 'px';
+
+    // translate when resizing from top or left edges
+    x += event.deltaRect.left;
+    y += event.deltaRect.top;
+
+    target.style.webkitTransform = target.style.transform =
+        'translate(' + x + 'px,' + y + 'px)';
+
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+
+  });
+  function resizeListener (event){
+	var target = event.target;
+	target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
+  }
+      
+  function dragStartListener (event) {
+  }
+
+  function dragMoveListener (event) {
+    var target = event.target,
+        // keep the dragged position in the data-x/data-y attributes
+        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+    // translate the element
+    target.style.webkitTransform =
+    target.style.transform =
+      'translate(' + x + 'px, ' + y + 'px)';
+
+    // update the posiion attributes
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+    target.getElementsByClassName('des')[0].style.display = "block";
+    target.getElementsByClassName('des')[0].innerHTML = Math.round(x * 100)/100 +" x " + Math.round(y * 100)/100;
+  }
+
+  function dragEndListener (event){
+  	var target = event.target;
+  	target.getElementsByClassName('des')[0].style.display = "none";
+  }
+
+  // this is used later in the resizing and gesture demos
+  window.dragMoveListener = dragMoveListener;
+
+$(document).ready(function()
+{
+
+});
+
+
+
+
+
+</script>
+
+</body>
+</html>
