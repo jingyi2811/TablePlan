@@ -26,9 +26,33 @@ Marriage couple will know
 
 - What is the total cost? (Cost of no of tables + wine).
 - What is the total received angpau?
-- Who give the highest amount of angpau and who give the least.
+- Who give the highest amount of angpau and who give 
 
-Code will be written by
+------------------------------------------------------------------------------------------------------------------------
+
+List of screens and high-level requirements.
+
+Dashboard screen
+- Determine table shape.
+- Determine the number of people assigned to every table.
+
+Invited people screen
+- Insert invited people's information such as name, age, gender, what is their relationship with the wedded pair, hobby and interest.
+
+Angpau screen
+- Key in angpao amount of the invited people.
+
+Costing screen
+- Show the total cost of the wedding dinner.
+- Show the amount of the total angapaus received.
+
+Reporting screen
+- Member report
+- Table utilization report (How many empty seat?)
+
+------------------------------------------------------------------------------------------------------------------------
+
+List of technologies used.
 
 FrontEnd
 - Html5
