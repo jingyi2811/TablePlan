@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+	<title>Test drag and drop</title>
+	<script src = "../js/interact.min.js"></script>
+	<script src = "../js/jquery.min.js"></script>
+	<script src = "../js/react.min.js"></script>
+	<script src = "../js/react-dom.min.js"></script>
+	<script src = "../js/browser.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+<body>
+<div id = "layout"></div>
+<div id = "layout2"></div>
+
+<!-- Reactjs Start Here -->
+<script type="text/babel">
+////// Create a class///////////////////////////
+var GrabBox = React.createClass(
+{
+  ////// PropsTypes of the class /////////////////////////
+  propTypes:
+  {
+    // Type of shape
+    accept : React.PropTypes.string.isRequired,
+
+    // Common Props
+    bgcolor : React.PropTypes.string.isRequired,
+    shape : React.PropTypes.string.isRequired,
+
+    // Circle Props
+    radius : React.PropTypes.string,
+
+    // Square and Rectangular Props
+    bradius : React.PropTypes.string,
+
+    // Square Props
+    size : React.PropTypes.string,
+
+    // Rectangular Props
+    width : React.PropTypes.string,
+    height : React.PropTypes.string,
+
+  },
+  ////// Default Value of props ///////////////////////////
+  getDefaultProps : function()
+  {
+    return {
+      accept : "false",
+
+      bgcolor : "#2299EE",
+      shape : "circle",
+      radius : "100",
+      bradius : "15%",
+      size : "200px",
+      width : "80px",
+      height : "200px",
+
+    }
+  },
+  ////// Render function ///////////////////////////
+	render : function()
+	{
+    ////// Style that vary based on proptypes ///////////////////////////
+    var styles = {
+      Shape : {
+        backgroundColor : this.props.bgcolor,
+        borderRadius : 
+          (this.props.shape === "circle" ? "100%" : 
+          (this.props.shape === "square" || this.props.shape === "rectangular" ? this.props.bradius : "0%")),
+
+        width : 
+          (this.props.shape === "circle" ? this.props.radius * 2:
+          (this.props.shape === "square" ? this.props.size:
+          (this.props.shape === "rectangular" ? this.props.width : "0" ))),
+
+        height : 
+          (this.props.shape === "circle" ? this.props.radius * 2:
+          (this.props.shape === "square" ? this.props.size:
+          (this.props.shape === "rectangular" ? this.props.height : "0" ))),
+      },
+    }
+
+    ////// HTML Element that going to return ///////////////////////////
+		return (
+  		<div className="resize-container">
+      {/* Here put data-x and data-y is because there will automatically have x and y attribute before drag it */}
+  			<div data-x = "0" data-y = "0" className={"resize-drag " + (this.props.accept === "true" ? 'accept' : '')} style = {styles.Shape}>
+  				<div className='size'></div>
+  				<div className='pos'></div>
+  			</div>
+  		</div>
+		);
+	}
+});
+
+///// Render it ///////////////////////////
+ReactDOM.render(
+<GrabBox bgcolor = "#2299EE" shape = "circle" radius = "50" />,
+document.getElementById('layout'));
+
+ReactDOM.render(
+<GrabBox bgcolor = "#CC0000" shape = "circle" radius = "50" accept = "true" />,
+document.getElementById('layout2'));
+</script>
+
+<!-- Interactjs Start Here -->
+<script type="text/javascript">
+////// Interact element porperties here ///////////////////////////
+interact('.resize-drag')
+  .draggable({
+    // call this function before dragmove event
+    onstart : dragStartListener,
+    // call this function on every dragmove event
+    onmove: dragMoveListener,
+    // call this function on every dragend event
+    onend: dragEndListener
+  })
+  .resizable({
+    edges: { left: true, right: true, bottom: true, top: true },
+    preserveAspectRatio: true,
+    onmove : resizeListener,
+  })
+  .on('resizemove', function (event) {
+    var target = event.target,
+        x = (parseFloat(target.getAttribute('data-x')) || 0),
+        y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+    // update the element's style
+    target.style.width  = event.rect.width + 'px';
+    target.style.height = event.rect.height + 'px';
+
+    // translate when resizing from top or left edges
+    x += event.deltaRect.left;
+    y += event.deltaRect.top;
+
+    target.style.webkitTransform = target.style.transform =
+        'translate(' + x + 'px,' + y + 'px)';
+
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+  });
+
+  //// Resize Event Listener start here ///////////////////////////
+  function resizeListener (event){
+  	var target = event.target;
+  	target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
+  }
+
+  ////// Drag Event Listener start here ///////////////////////////
+  function dragStartListener (event) {
+  }
+
+  function dragMoveListener (event) {
+    var target = event.target,
+        // keep the dragged position in the data-x/data-y attributes
+        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+    // translate the element
+    target.style.webkitTransform =
+    target.style.transform =
+      'translate(' + x + 'px, ' + y + 'px)';
+
+    // update the posiion attributes
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+    target.getElementsByClassName('pos')[0].style.display = "inline-block";
+    target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100)/100 +"," + Math.round(y * 100)/100;
+  }
+
+  function dragEndListener (event){
+  	var target = event.target;
+  	target.getElementsByClassName('pos')[0].style.display = "none";
+      
+    // checkIntersect(target);
+
+    // x = 50;
+    // y = 100;
+    // target.style.transition = "all 0.4s ease-in";
+
+    // target.style.webkitTransform =
+    // target.style.transform =
+    //   'translate(' + x + 'px, ' + y + 'px)';
+
+    // target.setAttribute('data-x', x);
+    // target.setAttribute('data-y', y);
+    // target.getElementsByClassName('pos')[0].style.display = "inline-block";
+    // target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100)/100 +"," + Math.round(y * 100)/100;
+    // setTimeout(function() { target.style.transition = ""; }, 400);
+
+  }
+
+  // this is used later in the resizing and gesture demos
+  window.dragMoveListener = dragMoveListener;
+
+  /////// Self-Define Function ///////////////////////////
+  // Return the distance between 2 point
+  function distancePoint (x1,y1,x2,y2)
+  {
+    var tempx = (x1-x2);
+    var tempy = (y1-y2);
+    return Math.sqrt((tempx * tempx) + (tempy * tempy));
+  }
+
+  // Return the center of a circle in array 
+  // x and y is the position of the left-most point
+  function getCircleCenter (x,y,width,height)
+  {
+    var centerx = x + (width / 2);
+    var centery = (y + height) / 2;
+    return [centerx,centery];
+  }
+
+  // // To check it is the object is Intersect with any accepting circle
+  // function checkIntersect (object)
+  // {
+  //   // Get all accepting element and initialize variable
+  //   var allGrabBox = document.getElementsByClassName("accept");
+  //   var x = parseInt(object.getAttribute("data-x"));
+  //   var y = parseInt(object.getAttribute("data-y"));
+  //   var width = parseInt(object.style.width.slice(0,-2));
+  //   var height = parseInt(object.style.height.slice(0,-2))
+
+  //   var tempx = 0;
+  //   var tempy = 0;
+  //   var tempwidth = 0;
+  //   var tempheight = 0;
+  //   var distance = 0;
+    
+  //   // Check one by one
+  //   for (var i = allGrabBox.length - 1; i >= 0; i--) {
+  //     // Get the accepting element attributes first
+  //     tempx = parseInt(allGrabBox[i].getAttribute("data-x"));
+  //     tempy = parseInt(allGrabBox[i].getAttribute("data-y"));
+  //     tempwidth = parseInt(allGrabBox[i].style.width.slice(0,-2));
+  //     tempheight = parseInt(allGrabBox[i].style.height.slice(0,-2));
+
+  //     center1 = getCircleCenter(x,y,width,height);
+  //     center2 = getCircleCenter(tempx,tempy,tempwidth,tempheight);
+  //     distance = distancePoint(center1[0],center1[1],center2[0],center2[1]);
+  //     console.log(center1);
+  //     console.log(center2);
+  //     console.log(distance);
+
+  //   }
+  // }
+
+
+</script>
+
+<!-- JQuery Start Here -->
+<script type="text/javascript">
+  $(document).ready(function()
+  {
+
+  });
+</script>
+
+</body>
+</html>
