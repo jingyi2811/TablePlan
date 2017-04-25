@@ -70,8 +70,8 @@ table {
 }
 .size{
 	position: absolute;
-    bottom: 5%;
-    right: 5%;
+    bottom: 50%;
+    right: 50%;
 }
 .resize-drag {
   background-color: red;

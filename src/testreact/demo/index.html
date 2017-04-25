@@ -107,9 +107,12 @@ document.getElementById('layout2'));
 
 <!-- Interactjs Start Here -->
 <script type="text/javascript">
+////////////////////////////////////////////////////////
 ////// Interact element porperties here ///////////////////////////
+////////////////////////////////////////////////////////
 interact('.resize-drag')
   .draggable({
+    inertia : false,
     // call this function before dragmove event
     onstart : dragStartListener,
     // call this function on every dragmove event
@@ -126,7 +129,6 @@ interact('.resize-drag')
     var target = event.target,
         x = (parseFloat(target.getAttribute('data-x')) || 0),
         y = (parseFloat(target.getAttribute('data-y')) || 0);
-
     // update the element's style
     target.style.width  = event.rect.width + 'px';
     target.style.height = event.rect.height + 'px';
@@ -140,6 +142,20 @@ interact('.resize-drag')
 
     target.setAttribute('data-x', x);
     target.setAttribute('data-y', y);
+  })
+  .dropzone({
+    // only accept elements matching this CSS selector
+    accept: '.accept',
+    // Require a 75% element overlap for a drop to be possible
+    // Remember to make the shape be same, if not, it will not trigger since need 30% of element
+    overlap: 0.02,
+
+    // listen for drop related events:
+    ondropactivate: dropActiveListener,
+    ondragenter: dropEnterListener,
+    ondragleave: dropLeaveListener,
+    ondrop: dropListener,
+    ondropdeactivate: dropDeactiveListener,
   });
 
   //// Resize Event Listener start here ///////////////////////////
@@ -147,16 +163,19 @@ interact('.resize-drag')
   	var target = event.target;
   	target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
   }
-
+  ////////////////////////////////////////////////////////
   ////// Drag Event Listener start here ///////////////////////////
+  ////////////////////////////////////////////////////////
   function dragStartListener (event) {
   }
 
   function dragMoveListener (event) {
-    var target = event.target,
-        // keep the dragged position in the data-x/data-y attributes
-        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+    var target = event.target;
+    // keep the dragged position in the data-x/data-y attributes
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+    var width = parseFloat(target.style.width);
+    var height = parseFloat(target.style.height);
 
     // translate the element
     target.style.webkitTransform =
@@ -189,16 +208,46 @@ interact('.resize-drag')
     // target.getElementsByClassName('pos')[0].style.display = "inline-block";
     // target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100)/100 +"," + Math.round(y * 100)/100;
     // setTimeout(function() { target.style.transition = ""; }, 400);
-
   }
-
   // this is used later in the resizing and gesture demos
   window.dragMoveListener = dragMoveListener;
+  ////////////////////////////////////////////////////////
+  ////// Drop Event Listener /////////////////////////////////
+  ////////////////////////////////////////////////////////
 
+  function dropActiveListener (event){
+  }
+  function dropEnterListener (event){
+  }
+  function dropLeaveListener (event){
+  }
+  function dropListener (event){
+    var dragElement = event.relatedTarget,
+      dropElement = event.target;
+
+    var dropx = dropElement.getAttribute('data-x');
+    var dropy = dropElement.getAttribute('data-y');
+
+    dragElement.style.transition = "all 0.2s ease-in";
+
+    dragElement.style.webkitTransform =
+    dragElement.style.transform =
+      'translate(' + dropx + 'px, ' + dropy + 'px)';
+
+    dragElement.setAttribute('data-x', dropx);
+    dragElement.setAttribute('data-y', dropy);
+    dragElement.getElementsByClassName('pos')[0].style.display = "inline-block";
+    dragElement.getElementsByClassName('pos')[0].innerHTML = Math.round(dropx * 100)/100 +"," + Math.round(dropy * 100)/100;
+    setTimeout(function() { dragElement.style.transition = ""; }, 400);
+  }
+  function dropDeactiveListener (event){
+  }
+
+  ////////////////////////////////////////////////////////
   /////// Self-Define Function ///////////////////////////
+  ////////////////////////////////////////////////////////
   // Return the distance between 2 point
-  function distancePoint (x1,y1,x2,y2)
-  {
+  function distancePoint (x1,y1,x2,y2){
     var tempx = (x1-x2);
     var tempy = (y1-y2);
     return Math.sqrt((tempx * tempx) + (tempy * tempy));
@@ -206,47 +255,11 @@ interact('.resize-drag')
 
   // Return the center of a circle in array 
   // x and y is the position of the left-most point
-  function getCircleCenter (x,y,width,height)
-  {
+  function getCircleCenter (x,y,width,height){
     var centerx = x + (width / 2);
     var centery = (y + height) / 2;
     return [centerx,centery];
   }
-
-  // // To check it is the object is Intersect with any accepting circle
-  // function checkIntersect (object)
-  // {
-  //   // Get all accepting element and initialize variable
-  //   var allGrabBox = document.getElementsByClassName("accept");
-  //   var x = parseInt(object.getAttribute("data-x"));
-  //   var y = parseInt(object.getAttribute("data-y"));
-  //   var width = parseInt(object.style.width.slice(0,-2));
-  //   var height = parseInt(object.style.height.slice(0,-2))
-
-  //   var tempx = 0;
-  //   var tempy = 0;
-  //   var tempwidth = 0;
-  //   var tempheight = 0;
-  //   var distance = 0;
-    
-  //   // Check one by one
-  //   for (var i = allGrabBox.length - 1; i >= 0; i--) {
-  //     // Get the accepting element attributes first
-  //     tempx = parseInt(allGrabBox[i].getAttribute("data-x"));
-  //     tempy = parseInt(allGrabBox[i].getAttribute("data-y"));
-  //     tempwidth = parseInt(allGrabBox[i].style.width.slice(0,-2));
-  //     tempheight = parseInt(allGrabBox[i].style.height.slice(0,-2));
-
-  //     center1 = getCircleCenter(x,y,width,height);
-  //     center2 = getCircleCenter(tempx,tempy,tempwidth,tempheight);
-  //     distance = distancePoint(center1[0],center1[1],center2[0],center2[1]);
-  //     console.log(center1);
-  //     console.log(center2);
-  //     console.log(distance);
-
-  //   }
-  // }
-
 
 </script>
 
