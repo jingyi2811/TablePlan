@@ -1,115 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-	<title>Test drag and drop</title>
-	<script src = "../js/interact.min.js"></script>
-	<script src = "../js/jquery.min.js"></script>
-	<script src = "../js/react.min.js"></script>
-	<script src = "../js/react-dom.min.js"></script>
-	<script src = "../js/browser.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="css/style.css"/>
-</head>
-<body>
-<div id = "layout"></div>
-<div id = "layout2"></div>
-
-<!-- Reactjs Start Here -->
-<script type="text/babel">
-////// Create a class///////////////////////////
-var GrabBox = React.createClass(
-{
-  ////// PropsTypes of the class /////////////////////////
-  propTypes:
-  {
-    // Type of shape
-    accept : React.PropTypes.string.isRequired,
-
-    // Common Props
-    bgcolor : React.PropTypes.string.isRequired,
-    shape : React.PropTypes.string.isRequired,
-
-    // Circle Props
-    radius : React.PropTypes.string,
-
-    // Square and Rectangular Props
-    bradius : React.PropTypes.string,
-
-    // Square Props
-    size : React.PropTypes.string,
-
-    // Rectangular Props
-    width : React.PropTypes.string,
-    height : React.PropTypes.string,
-
-  },
-  ////// Default Value of props ///////////////////////////
-  getDefaultProps : function()
-  {
-    return {
-      accept : "false",
-
-      bgcolor : "#2299EE",
-      shape : "circle",
-      radius : "100",
-      bradius : "15%",
-      size : "200px",
-      width : "80px",
-      height : "200px",
-
-    }
-  },
-  ////// Render function ///////////////////////////
-	render : function()
-	{
-    ////// Style that vary based on proptypes ///////////////////////////
-    var styles = {
-      Shape : {
-        backgroundColor : this.props.bgcolor,
-        borderRadius : 
-          (this.props.shape === "circle" ? "100%" : 
-          (this.props.shape === "square" || this.props.shape === "rectangular" ? this.props.bradius : "0%")),
-
-        width : 
-          (this.props.shape === "circle" ? this.props.radius * 2:
-          (this.props.shape === "square" ? this.props.size:
-          (this.props.shape === "rectangular" ? this.props.width : "0" ))),
-
-        height : 
-          (this.props.shape === "circle" ? this.props.radius * 2:
-          (this.props.shape === "square" ? this.props.size:
-          (this.props.shape === "rectangular" ? this.props.height : "0" ))),
-      },
-    }
-
-    ////// HTML Element that going to return ///////////////////////////
-		return (
-  		<div className="resize-container">
-      {/* Here put data-x and data-y is because there will automatically have x and y attribute before drag it */}
-  			<div data-x = "0" data-y = "0" className={"resize-drag " + (this.props.accept === "true" ? 'accept' : '')} style = {styles.Shape}>
-  				<div className='size'></div>
-  				<div className='pos'></div>
-  			</div>
-  		</div>
-		);
-	}
-});
-
-///// Render it ///////////////////////////
-ReactDOM.render(
-<GrabBox bgcolor = "#2299EE" shape = "circle" radius = "50" />,
-document.getElementById('layout'));
-
-ReactDOM.render(
-<GrabBox bgcolor = "#CC0000" shape = "circle" radius = "50" accept = "true" />,
-document.getElementById('layout2'));
-</script>
-
-<!-- Interactjs Start Here -->
-<script type="text/javascript">
-////////////////////////////////////////////////////////
-////// Interact element porperties here ///////////////////////////
-////////////////////////////////////////////////////////
 interact('.resize-drag')
   .draggable({
     inertia : false,
@@ -145,7 +33,7 @@ interact('.resize-drag')
   })
   .dropzone({
     // only accept elements matching this CSS selector
-    accept: '.accept',
+    accept: '.putin',
     // Require a 75% element overlap for a drop to be possible
     // Remember to make the shape be same, if not, it will not trigger since need 30% of element
     overlap: 0.02,
@@ -191,8 +79,7 @@ interact('.resize-drag')
 
   function dragEndListener (event){
   	var target = event.target;
-  	target.getElementsByClassName('pos')[0].style.display = "none";
-      
+  	target.getElementsByClassName('pos')[0].style.display = "none";  
     // checkIntersect(target);
 
     // x = 50;
@@ -260,16 +147,3 @@ interact('.resize-drag')
     var centery = (y + height) / 2;
     return [centerx,centery];
   }
-
-</script>
-
-<!-- JQuery Start Here -->
-<script type="text/javascript">
-  $(document).ready(function()
-  {
-
-  });
-</script>
-
-</body>
-</html>
