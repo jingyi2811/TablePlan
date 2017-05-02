@@ -52,8 +52,6 @@
 
 	__webpack_require__(160);
 
-	__webpack_require__(169);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
@@ -80,6 +78,8 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	var count = 0;
+
 	var GrabBox = function (_React$Component) {
 	  _inherits(GrabBox, _React$Component);
 
@@ -92,7 +92,7 @@
 	  _createClass(GrabBox, [{
 	    key: 'render',
 	    value: function render() {
-
+	      count = count + 1;
 	      var styles = {
 	        Shape: {
 	          backgroundColor: this.props.bgcolor,
@@ -109,7 +109,9 @@
 	        { className: 'resize-container' },
 	        _react2.default.createElement(
 	          'div',
-	          { 'data-x': '0', 'data-y': '0', className: "resize-drag " + (this.props.putin === "true" ? 'putin' : ''), style: styles.Shape },
+	          { 'data-x': '0', 'data-y': '0',
+	            className: "resize-drag " + (this.props.generator === "true" ? 'generator' : '') + (this.props.putin === "true" ? 'putin' : ''),
+	            style: styles.Shape },
 	          _react2.default.createElement('div', { className: 'size' }),
 	          _react2.default.createElement('div', { className: 'pos' })
 	        )
@@ -123,6 +125,7 @@
 	GrabBox.propTypes = {
 	  // Type of shape
 	  putin: _react2.default.PropTypes.string,
+	  generator: _react2.default.PropTypes.string,
 
 	  // Common Props
 	  bgcolor: _react2.default.PropTypes.string.isRequired,
@@ -144,6 +147,7 @@
 
 	GrabBox.defaultProps = {
 	  putit: "false",
+	  generator: "false",
 	  bgcolor: "#2299EE",
 	  shape: "circle",
 	  radius: "100",
@@ -153,10 +157,197 @@
 	  height: "200px"
 	};
 
-	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2299EE', shape: 'circle', radius: '50' }), document.getElementById('layout'));
-	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#CC0000', shape: 'circle', radius: '50', putin: 'true' }), document.getElementById('layout2'));
-	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#CC99E0', shape: 'circle', radius: '50', putin: 'true' }), document.getElementById('layout3'));
-	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#FF880C', shape: 'circle', radius: '50', putin: 'true' }), document.getElementById('layout4'));
+	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2299EE', shape: 'circle', radius: '50', generator: 'true' }), document.getElementById('layout0'));
+
+	interact('.resize-drag').draggable({
+	  inertia: false,
+	  // call this function before dragmove event
+	  onstart: dragStartListener,
+	  // call this function on every dragmove event
+	  onmove: dragMoveListener,
+	  // call this function on every dragend event
+	  onend: dragEndListener
+	}).resizable({
+	  edges: { left: true, right: true, bottom: true, top: true },
+	  preserveAspectRatio: true,
+	  onmove: resizeListener
+	}).on('resizemove', function (event) {
+	  var target = event.target,
+	      x = parseFloat(target.getAttribute('data-x')) || 0,
+	      y = parseFloat(target.getAttribute('data-y')) || 0;
+	  // update the element's style
+	  target.style.width = event.rect.width + 'px';
+	  target.style.height = event.rect.height + 'px';
+
+	  // translate when resizing from top or left edges
+	  x += event.deltaRect.left;
+	  y += event.deltaRect.top;
+
+	  target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+
+	  target.setAttribute('data-x', x);
+	  target.setAttribute('data-y', y);
+	}).dropzone({
+	  // only accept elements matching this CSS selector
+	  accept: '.putin',
+	  // Require a 75% element overlap for a drop to be possible
+	  // Remember to make the shape be same, if not, it will not trigger since need 30% of element
+	  overlap: 0.02,
+
+	  // listen for drop related events:
+	  ondropactivate: dropActiveListener,
+	  ondragenter: dropEnterListener,
+	  ondragleave: dropLeaveListener,
+	  ondrop: dropListener,
+	  ondropdeactivate: dropDeactiveListener
+	});
+
+	//// Resize Event Listener start here ///////////////////////////
+	function resizeListener(event) {
+	  var target = event.target;
+	  target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
+	}
+	////////////////////////////////////////////////////////
+	////// Drag Event Listener start here ///////////////////////////
+	////////////////////////////////////////////////////////
+	function dragStartListener(event) {
+	  // When drag start, if it is a generator, insert the html tag and insert x,y properties based on generator x,y
+	  var target = event.target;
+
+	  // If it is a generator
+	  if (target.classList.contains('generator')) {
+	    // Create Element and append it
+	    var element = document.createElement("div");
+	    // Use dynamic generate the id name
+	    var idName = 'layout' + count; // this is just use count without - 1 
+	    element.id = idName;
+	    document.getElementById("wrapper").append(element);
+
+	    // render it
+	    _reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2200CE', shape: 'circle', radius: '50', generator: 'true' }), document.getElementById(idName));
+
+	    // Now make it to the parents x y
+	    // Get parents x y
+	    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+	    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+	    // Get the element that we just created
+	    var layoutElement = document.getElementById(idName);
+	    var createdElement = layoutElement.children[0].children[0];
+
+	    // translate the element
+	    createdElement.style.webkitTransform = createdElement.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+	    // update the posiion attributes
+	    createdElement.setAttribute('data-x', x);
+	    createdElement.setAttribute('data-y', y);
+	    createdElement.getElementsByClassName('pos')[0].style.display = "inline-block";
+	    createdElement.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+	  }
+	}
+
+	function dragMoveListener(event) {
+	  // If it is a generator, drag the element that we just create on dragStart, if not drag the current element
+	  var target = event.target;
+
+	  // If it is a generator
+	  if (target.classList.contains('generator')) {
+	    // Get the element that just created
+	    var layoutElement = document.getElementById(getIdName());
+	    target = layoutElement.children[0].children[0];
+
+	    // Start to move it
+	    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+	    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+	    // translate the element
+	    target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+	    // update the posiion attributes
+	    target.setAttribute('data-x', x);
+	    target.setAttribute('data-y', y);
+	    target.getElementsByClassName('pos')[0].style.display = "inline-block";
+	    target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+	  }
+	  // If it is a normal element
+	  else {
+	      // keep the dragged position in the data-x/data-y attributes
+	      var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+	      var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+	      // translate the element
+	      target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+	      // update the posiion attributes
+	      target.setAttribute('data-x', x);
+	      target.setAttribute('data-y', y);
+	      target.getElementsByClassName('pos')[0].style.display = "inline-block";
+	      target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+	    }
+	}
+
+	function dragEndListener(event) {
+	  // If it is a generator then remove the pos of the created element, if not remove the current position
+	  var target = event.target;
+	  if (target.classList.contains('generator')) {
+	    var layoutElement = document.getElementById(getIdName());
+	    // var target = layoutElement.children[0].children[0];
+	    layoutElement.getElementsByClassName('pos')[0].style.display = "none";
+	    // target.getElementsByClassName('pos')[0].style.display = "none";  
+	  } else {
+	    target.getElementsByClassName('pos')[0].style.display = "none";
+	  }
+	}
+	// this is used later in the resizing and gesture demos
+	window.dragMoveListener = dragMoveListener;
+	////////////////////////////////////////////////////////
+	////// Drop Event Listener /////////////////////////////////
+	////////////////////////////////////////////////////////
+
+	function dropActiveListener(event) {}
+	function dropEnterListener(event) {}
+	function dropLeaveListener(event) {}
+	function dropListener(event) {
+	  var dragElement = event.relatedTarget,
+	      dropElement = event.target;
+
+	  var dropx = dropElement.getAttribute('data-x');
+	  var dropy = dropElement.getAttribute('data-y');
+
+	  dragElement.style.transition = "all 0.2s ease-in";
+
+	  dragElement.style.webkitTransform = dragElement.style.transform = 'translate(' + dropx + 'px, ' + dropy + 'px)';
+
+	  dragElement.setAttribute('data-x', dropx);
+	  dragElement.setAttribute('data-y', dropy);
+	  dragElement.getElementsByClassName('pos')[0].style.display = "inline-block";
+	  dragElement.getElementsByClassName('pos')[0].innerHTML = Math.round(dropx * 100) / 100 + "," + Math.round(dropy * 100) / 100;
+	  setTimeout(function () {
+	    dragElement.style.transition = "";
+	  }, 400);
+	}
+	function dropDeactiveListener(event) {}
+
+	////////////////////////////////////////////////////////
+	/////// Self-Define Function ///////////////////////////
+	////////////////////////////////////////////////////////
+	// Return the distance between 2 point
+	function distancePoint(x1, y1, x2, y2) {
+	  var tempx = x1 - x2;
+	  var tempy = y1 - y2;
+	  return Math.sqrt(tempx * tempx + tempy * tempy);
+	}
+
+	// Return the center of a circle in array 
+	// x and y is the position of the left-most point
+	function getCircleCenter(x, y, width, height) {
+	  var centerx = x + width / 2;
+	  var centery = (y + height) / 2;
+	  return [centerx, centery];
+	}
+	function getIdName() {
+	  return 'layout' + (count - 1); //this one is idName -1 
+	}
 
 /***/ },
 /* 2 */
@@ -19868,8 +20059,8 @@
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./grabbox.scss", function() {
-				var newContent = require("!!../../../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./grabbox.scss");
+			module.hot.accept("!!../../../../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./grabbox.scss", function() {
+				var newContent = require("!!../../../../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./grabbox.scss");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -19887,7 +20078,7 @@
 
 
 	// module
-	exports.push([module.id, ".pos {\n  min-width: 80px;\n  min-height: 16px;\n  background-color: #282828;\n  color: white;\n  text-align: center;\n  border-radius: 6px;\n  padding: 5px 0;\n  position: absolute;\n  z-index: 1;\n  bottom: 100%;\n  left: 50%;\n  margin-left: -40px;\n  margin-bottom: 1px;\n  display: none; }\n\n.size {\n  position: absolute;\n  bottom: 50%;\n  right: 50%; }\n\n.resize-drag {\n  color: white;\n  font-size: 16px;\n  border-radius: 4%;\n  margin: 30px 20px;\n  width: 100px;\n  height: 80px;\n  position: absolute;\n  overflow: visible; }\n\n.resize-drag:active,\n.resize-drag:focus {\n  opacity: 0.9; }\n\n.resize-container {\n  width: 100%;\n  height: auto; }\n", ""]);
+	exports.push([module.id, ".pos {\n  min-width: 70px;\n  min-height: 16px;\n  background-color: #282828;\n  font-size: 12px;\n  color: white;\n  text-align: center;\n  border-radius: 6px;\n  padding: 5px 0;\n  position: absolute;\n  z-index: 1;\n  bottom: 100%;\n  left: 50%;\n  margin-left: -40px;\n  margin-bottom: 1px;\n  display: none; }\n\n.size {\n  position: absolute;\n  bottom: 50%;\n  right: 50%; }\n\n.resize-drag {\n  color: white;\n  font-size: 16px;\n  border-radius: 4%;\n  margin: 30px 20px;\n  width: 100px;\n  height: 80px;\n  position: absolute;\n  overflow: visible; }\n\n.resize-drag:active,\n.resize-drag:focus {\n  opacity: 0.9; }\n\n.resize-container {\n  width: 100%;\n  height: auto; }\n", ""]);
 
 	// exports
 
@@ -22381,151 +22572,6 @@
 		return fixedCss;
 	};
 
-
-/***/ },
-/* 169 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	interact('.resize-drag').draggable({
-	  inertia: false,
-	  // call this function before dragmove event
-	  onstart: dragStartListener,
-	  // call this function on every dragmove event
-	  onmove: dragMoveListener,
-	  // call this function on every dragend event
-	  onend: dragEndListener
-	}).resizable({
-	  edges: { left: true, right: true, bottom: true, top: true },
-	  preserveAspectRatio: true,
-	  onmove: resizeListener
-	}).on('resizemove', function (event) {
-	  var target = event.target,
-	      x = parseFloat(target.getAttribute('data-x')) || 0,
-	      y = parseFloat(target.getAttribute('data-y')) || 0;
-	  // update the element's style
-	  target.style.width = event.rect.width + 'px';
-	  target.style.height = event.rect.height + 'px';
-
-	  // translate when resizing from top or left edges
-	  x += event.deltaRect.left;
-	  y += event.deltaRect.top;
-
-	  target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-
-	  target.setAttribute('data-x', x);
-	  target.setAttribute('data-y', y);
-	}).dropzone({
-	  // only accept elements matching this CSS selector
-	  accept: '.putin',
-	  // Require a 75% element overlap for a drop to be possible
-	  // Remember to make the shape be same, if not, it will not trigger since need 30% of element
-	  overlap: 0.02,
-
-	  // listen for drop related events:
-	  ondropactivate: dropActiveListener,
-	  ondragenter: dropEnterListener,
-	  ondragleave: dropLeaveListener,
-	  ondrop: dropListener,
-	  ondropdeactivate: dropDeactiveListener
-	});
-
-	//// Resize Event Listener start here ///////////////////////////
-	function resizeListener(event) {
-	  var target = event.target;
-	  target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
-	}
-	////////////////////////////////////////////////////////
-	////// Drag Event Listener start here ///////////////////////////
-	////////////////////////////////////////////////////////
-	function dragStartListener(event) {}
-
-	function dragMoveListener(event) {
-	  var target = event.target;
-	  // keep the dragged position in the data-x/data-y attributes
-	  var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-	  var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-	  var width = parseFloat(target.style.width);
-	  var height = parseFloat(target.style.height);
-
-	  // translate the element
-	  target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-	  // update the posiion attributes
-	  target.setAttribute('data-x', x);
-	  target.setAttribute('data-y', y);
-	  target.getElementsByClassName('pos')[0].style.display = "inline-block";
-	  target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
-	}
-
-	function dragEndListener(event) {
-	  var target = event.target;
-	  target.getElementsByClassName('pos')[0].style.display = "none";
-
-	  // checkIntersect(target);
-
-	  // x = 50;
-	  // y = 100;
-	  // target.style.transition = "all 0.4s ease-in";
-
-	  // target.style.webkitTransform =
-	  // target.style.transform =
-	  //   'translate(' + x + 'px, ' + y + 'px)';
-
-	  // target.setAttribute('data-x', x);
-	  // target.setAttribute('data-y', y);
-	  // target.getElementsByClassName('pos')[0].style.display = "inline-block";
-	  // target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100)/100 +"," + Math.round(y * 100)/100;
-	  // setTimeout(function() { target.style.transition = ""; }, 400);
-	}
-	// this is used later in the resizing and gesture demos
-	window.dragMoveListener = dragMoveListener;
-	////////////////////////////////////////////////////////
-	////// Drop Event Listener /////////////////////////////////
-	////////////////////////////////////////////////////////
-
-	function dropActiveListener(event) {}
-	function dropEnterListener(event) {}
-	function dropLeaveListener(event) {}
-	function dropListener(event) {
-	  var dragElement = event.relatedTarget,
-	      dropElement = event.target;
-
-	  var dropx = dropElement.getAttribute('data-x');
-	  var dropy = dropElement.getAttribute('data-y');
-
-	  dragElement.style.transition = "all 0.2s ease-in";
-
-	  dragElement.style.webkitTransform = dragElement.style.transform = 'translate(' + dropx + 'px, ' + dropy + 'px)';
-
-	  dragElement.setAttribute('data-x', dropx);
-	  dragElement.setAttribute('data-y', dropy);
-	  dragElement.getElementsByClassName('pos')[0].style.display = "inline-block";
-	  dragElement.getElementsByClassName('pos')[0].innerHTML = Math.round(dropx * 100) / 100 + "," + Math.round(dropy * 100) / 100;
-	  setTimeout(function () {
-	    dragElement.style.transition = "";
-	  }, 400);
-	}
-	function dropDeactiveListener(event) {}
-
-	////////////////////////////////////////////////////////
-	/////// Self-Define Function ///////////////////////////
-	////////////////////////////////////////////////////////
-	// Return the distance between 2 point
-	function distancePoint(x1, y1, x2, y2) {
-	  var tempx = x1 - x2;
-	  var tempy = y1 - y2;
-	  return Math.sqrt(tempx * tempx + tempy * tempy);
-	}
-
-	// Return the center of a circle in array 
-	// x and y is the position of the left-most point
-	function getCircleCenter(x, y, width, height) {
-	  var centerx = x + width / 2;
-	  var centery = (y + height) / 2;
-	  return [centerx, centery];
-	}
 
 /***/ }
 /******/ ]);
