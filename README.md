@@ -69,3 +69,77 @@ WebParameter / WebService
 Testing will use
 - Selenium 2
 - TestNG
+
+------------------------------------------------------------------------------------------------------------------------
+
+NoSql (MongoDb) collection structure
+
+Every collection should have 5 mandatory fields : id, created_by, created_date, updated_by, updated_date.
+
+Below is the list of collection of table plan.
+
+- TableSetting
+- Interest
+- Relationship
+- Dinner
+- Guest
+- GuestTable
+- Schedule
+- Photo
+- Video
+- User
+
+Below list the detail of every collection.
+
+TableSetting
+- maxAllowed
+- shape
+
+Interest
+- Name
+
+Relationship
+- Name
+
+Dinner
+- Date
+- Time From
+- Time To
+- Bride
+- Groom
+- MC
+- Angpau Collector
+- Video shooter
+
+Guest
+- Name
+- Chinese Name
+- Age
+- Interest
+- Relationship
+
+Table 
+- tableNo
+- positionX
+- positionY
+
+GuestTable
+- Guest id
+- Table id
+- Table seq
+
+Schedule
+- Time
+- Activity
+
+Photo
+- Name
+- Description
+
+Video
+- Name
+- Description
+
+User
+- Name
+- Role
