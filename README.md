@@ -92,7 +92,7 @@ Below is the list of collection of table plan.
 Below list the detail of every collection.
 
 TableSetting
-- maxAllowed
+- maxSeat
 - shape
 
 Interest
@@ -105,11 +105,11 @@ Dinner
 - Date
 - Time From
 - Time To
-- Bride
-- Groom
-- MC
-- Angpau Collector
-- Video shooter
+- Bride (User)
+- Groom (User)
+- Emcee (User)
+- Angpau Collector (User)
+- Video shooter (User)
 
 Guest
 - Name
@@ -124,8 +124,8 @@ Table
 - positionY
 
 GuestTable
-- Guest id
-- Table id
+- Guest id (Guest)
+- Table id (Table)
 - Table seq
 
 Schedule
