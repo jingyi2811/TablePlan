@@ -135,10 +135,12 @@ Schedule
 Photo
 - Name
 - Description
+- Link
 
 Video
 - Name
 - Description
+- Link
 
 User
 - Name
