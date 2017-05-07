@@ -52,6 +52,8 @@
 
 	__webpack_require__(160);
 
+	__webpack_require__(169);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
@@ -78,275 +80,354 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var count = 0;
+	var layoutCount = 0;
+	var tableCount = 0;
 
 	var GrabBox = function (_React$Component) {
-	  _inherits(GrabBox, _React$Component);
+		_inherits(GrabBox, _React$Component);
 
-	  function GrabBox() {
-	    _classCallCheck(this, GrabBox);
+		function GrabBox() {
+			_classCallCheck(this, GrabBox);
 
-	    return _possibleConstructorReturn(this, (GrabBox.__proto__ || Object.getPrototypeOf(GrabBox)).apply(this, arguments));
-	  }
+			return _possibleConstructorReturn(this, (GrabBox.__proto__ || Object.getPrototypeOf(GrabBox)).apply(this, arguments));
+		}
 
-	  _createClass(GrabBox, [{
-	    key: 'render',
-	    value: function render() {
-	      count = count + 1;
-	      var styles = {
-	        Shape: {
-	          backgroundColor: this.props.bgcolor,
-	          borderRadius: this.props.shape === "circle" ? "100%" : this.props.shape === "square" || this.props.shape === "rectangular" ? this.props.bradius : "0%",
+		_createClass(GrabBox, [{
+			key: 'render',
+			value: function render() {
+				if (this.props.generator == "true") {
+					// do not add the tablecount here
+				} else {
+					layoutCount = layoutCount + 1;
+				}
 
-	          width: this.props.shape === "circle" ? this.props.radius * 2 : this.props.shape === "square" ? this.props.size : this.props.shape === "rectangular" ? this.props.width : "0",
+				var styles = {
+					Shape: {
+						backgroundColor: this.props.bgcolor,
+						borderRadius: this.props.shape === "circle" ? "100%" : this.props.shape === "square" || this.props.shape === "rectangular" ? this.props.bradius : "0%",
+						width: this.props.shape === "circle" ? this.props.radius * 2 : this.props.shape === "square" ? this.props.size : this.props.shape === "rectangular" ? this.props.width : "0",
+						height: this.props.shape === "circle" ? this.props.radius * 2 : this.props.shape === "square" ? this.props.size : this.props.shape === "rectangular" ? this.props.height : "0",
 
-	          height: this.props.shape === "circle" ? this.props.radius * 2 : this.props.shape === "square" ? this.props.size : this.props.shape === "rectangular" ? this.props.height : "0"
-	        }
-	      };
+						opacity: this.props.opacity,
+						zIndex: this.props.z
+					}
+				};
+				return _react2.default.createElement(
+					'div',
+					{ className: 'resize-container' },
+					_react2.default.createElement(
+						'div',
+						{ 'data-x': '0', 'data-y': '0',
+							className: "resize-drag" + (this.props.generator === "true" ? ' generator' : '') + (this.props.draggable === "true" ? ' draggable' : '') + (this.props.resizable === "true" ? ' resizeon' : '') + (this.props.table === "true" ? ' table' : '') + (this.props.receive === "true" ? ' receive' : '') + (this.props.putin === "true" ? ' putin' : ''),
+							style: styles.Shape },
+						_react2.default.createElement('div', { className: 'size' }),
+						_react2.default.createElement('div', { className: 'pos' })
+					)
+				);
+			}
+		}, {
+			key: 'componentDidMount',
+			value: function componentDidMount() {
+				// When the component that we going to create is a table, create dropzone around it
+				// For Circle table only
+				if (this.props.table == "true") {
+					// Create element
+					// Append it
+					// Move to correct position
+					for (var i = 1; i <= 4; i++) {
+						// Create Element and append it
+						var element = document.createElement("div");
+						// Use dynamic generate the id name
+						var idName = 'layout' + layoutCount; // this is just use layoutCount without - 1 
+						element.id = idName;
+						var table = document.getElementById(getTableId());
+						table.append(element);
 
-	      return _react2.default.createElement(
-	        'div',
-	        { className: 'resize-container' },
-	        _react2.default.createElement(
-	          'div',
-	          { 'data-x': '0', 'data-y': '0',
-	            className: "resize-drag " + (this.props.generator === "true" ? 'generator' : '') + (this.props.putin === "true" ? 'putin' : ''),
-	            style: styles.Shape },
-	          _react2.default.createElement('div', { className: 'size' }),
-	          _react2.default.createElement('div', { className: 'pos' })
-	        )
-	      );
-	    }
-	  }]);
+						// render it
+						_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: 'black', shape: 'circle', radius: '30', draggable: 'false', opacity: '0.2', z: '-999', receive: 'true' }), element);
 
-	  return GrabBox;
+						// Calculate element x and y and move it to correct position
+						// Equation : CreatedX = x + sin(degree / numOfElement * index) * distance
+						var createdElement = element.getElementsByClassName('resize-container')[0].getElementsByClassName('resize-drag')[0];
+						var tableRadius = parseInt(this.props.radius);
+						var createdElementRadius = parseInt(createdElement.style.height) / 2;
+						var distance = tableRadius + createdElementRadius + 25; // 25 is to increase the distance
+						var degree = 360 / 4 * i;
+						var radian = degreeToRadian(degree);
+						// sin and cos function accept radian
+						var addx = Math.sin(radian) * distance;
+						var addy = Math.cos(radian) * distance;
+
+						// move it to correct position
+						var tableElement = table.getElementsByClassName('resize-container')[0].getElementsByClassName('resize-drag')[0];
+						var x = parseInt(tableElement.getAttribute("data-x"));
+						var y = parseInt(tableElement.getAttribute("data-y"));
+						moveToLocation(createdElement, x + addx, y + addy);
+					}
+				}
+			}
+		}]);
+
+		return GrabBox;
 	}(_react2.default.Component);
 
 	GrabBox.propTypes = {
-	  // Type of shape
-	  putin: _react2.default.PropTypes.string,
-	  generator: _react2.default.PropTypes.string,
+		// Type of shape
+		resizable: _react2.default.PropTypes.string,
+		undraggable: _react2.default.PropTypes.string,
+		table: _react2.default.PropTypes.string,
+		putin: _react2.default.PropTypes.string,
+		receive: _react2.default.PropTypes.string,
+		generator: _react2.default.PropTypes.string,
 
-	  // Common Props
-	  bgcolor: _react2.default.PropTypes.string.isRequired,
-	  shape: _react2.default.PropTypes.string.isRequired,
+		// Common Props
+		bgcolor: _react2.default.PropTypes.string.isRequired,
+		shape: _react2.default.PropTypes.string.isRequired,
+		opacity: _react2.default.PropTypes.string,
 
-	  // Circle Props
-	  radius: _react2.default.PropTypes.string,
+		// Circle Props
+		radius: _react2.default.PropTypes.string,
 
-	  // Square and Rectangular Props
-	  bradius: _react2.default.PropTypes.string,
+		// Square and Rectangular Props
+		bradius: _react2.default.PropTypes.string,
 
-	  // Square Props
-	  size: _react2.default.PropTypes.string,
+		// Square Props
+		size: _react2.default.PropTypes.string,
 
-	  // Rectangular Props
-	  width: _react2.default.PropTypes.string,
-	  height: _react2.default.PropTypes.string
+		// Rectangular Props
+		width: _react2.default.PropTypes.string,
+		height: _react2.default.PropTypes.string,
+
+		z: _react2.default.PropTypes.string
+
 	};
 
 	GrabBox.defaultProps = {
-	  putit: "false",
-	  generator: "false",
-	  bgcolor: "#2299EE",
-	  shape: "circle",
-	  radius: "100",
-	  bradius: "15%",
-	  size: "200px",
-	  width: "80px",
-	  height: "200px"
+		putit: "false",
+		table: "false",
+		receive: "false",
+		draggable: "true",
+		resizable: "false",
+		generator: "false",
+		bgcolor: "#2299EE",
+		shape: "circle",
+		opacity: "1",
+		radius: "100",
+		bradius: "15%",
+		size: "20px",
+		width: "80px",
+		height: "200px",
+		z: "1"
 	};
 
-	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2299EE', shape: 'circle', radius: '50', generator: 'true' }), document.getElementById('layout0'));
+	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2299EE', shape: 'circle', radius: '40', generator: 'true' }), document.getElementById('generator'));
+
+	_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#CC9910', putin: 'true', shape: 'circle', radius: '30' }), document.getElementById("guest1"));
 
 	interact('.resize-drag').draggable({
-	  inertia: false,
-	  // call this function before dragmove event
-	  onstart: dragStartListener,
-	  // call this function on every dragmove event
-	  onmove: dragMoveListener,
-	  // call this function on every dragend event
-	  onend: dragEndListener
+		inertia: false,
+		// call this function before dragmove event
+		onstart: dragStartListener,
+		// call this function on every dragmove event
+		onmove: dragMoveListener,
+		// call this function on every dragend event
+		onend: dragEndListener
 	}).resizable({
-	  edges: { left: true, right: true, bottom: true, top: true },
-	  preserveAspectRatio: true,
-	  onmove: resizeListener
-	}).on('resizemove', function (event) {
-	  var target = event.target,
-	      x = parseFloat(target.getAttribute('data-x')) || 0,
-	      y = parseFloat(target.getAttribute('data-y')) || 0;
-	  // update the element's style
-	  target.style.width = event.rect.width + 'px';
-	  target.style.height = event.rect.height + 'px';
+		edges: { left: true, right: true, bottom: true, top: true },
+		preserveAspectRatio: true
+	})
+	////////////////////////////////////////////////////////
+	//// Resize Event Listener start here //////////////////
+	////////////////////////////////////////////////////////
+	.on('resizemove', function (event) {
+		target = event.target;
+		if (target.classList.contains('resizeon')) {
+			var target = event.target,
+			    x = parseFloat(target.getAttribute('data-x')) || 0,
+			    y = parseFloat(target.getAttribute('data-y')) || 0;
+			// update the element's style
+			target.style.width = event.rect.width + 'px';
+			target.style.height = event.rect.height + 'px';
 
-	  // translate when resizing from top or left edges
-	  x += event.deltaRect.left;
-	  y += event.deltaRect.top;
+			// translate when resizing from top or left edges
+			x += event.deltaRect.left;
+			y += event.deltaRect.top;
 
-	  target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-
-	  target.setAttribute('data-x', x);
-	  target.setAttribute('data-y', y);
+			moveToLocation(target, x, y);
+		}
 	}).dropzone({
-	  // only accept elements matching this CSS selector
-	  accept: '.putin',
-	  // Require a 75% element overlap for a drop to be possible
-	  // Remember to make the shape be same, if not, it will not trigger since need 30% of element
-	  overlap: 0.02,
+		// only accept elements matching this CSS selector
+		accept: '.putin',
+		// Require a 75% element overlap for a drop to be possible
+		// Remember to make the shape be same, if not, it will not trigger since need 30% of element
+		overlap: 0.02,
 
-	  // listen for drop related events:
-	  ondropactivate: dropActiveListener,
-	  ondragenter: dropEnterListener,
-	  ondragleave: dropLeaveListener,
-	  ondrop: dropListener,
-	  ondropdeactivate: dropDeactiveListener
+		// listen for drop related events:
+		ondropactivate: dropActiveListener,
+		ondragenter: dropEnterListener,
+		ondragleave: dropLeaveListener,
+		ondrop: dropListener,
+		ondropdeactivate: dropDeactiveListener
 	});
-
-	//// Resize Event Listener start here ///////////////////////////
-	function resizeListener(event) {
-	  var target = event.target;
-	  target.getElementsByClassName('size')[0].innerHTML = Math.round(event.rect.width) + ' x ' + Math.round(event.rect.height);
-	}
 	////////////////////////////////////////////////////////
 	////// Drag Event Listener start here ///////////////////////////
 	////////////////////////////////////////////////////////
 	function dragStartListener(event) {
-	  // When drag start, if it is a generator, insert the html tag and insert x,y properties based on generator x,y
-	  var target = event.target;
+		// When drag start, if it is a generator, insert the html tag and insert x,y properties based on generator x,y
+		var target = event.target;
+		// If it is a generator
+		if (target.classList.contains('generator')) {
+			// Create Element and append it
+			var element = document.createElement("div");
+			// Use dynamic generate the id name
 
-	  // If it is a generator
-	  if (target.classList.contains('generator')) {
-	    // Create Element and append it
-	    var element = document.createElement("div");
-	    // Use dynamic generate the id name
-	    var idName = 'layout' + count; // this is just use count without - 1 
-	    element.id = idName;
-	    document.getElementById("wrapper").append(element);
+			var idName = "table" + tableCount; // this is just use tablecount without - 1 
+			element.id = idName;
+			target.parentElement.parentElement.append(element);
 
-	    // render it
-	    _reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: '#2200CE', shape: 'circle', radius: '50', generator: 'true' }), document.getElementById(idName));
+			// Get same colour with generator
+			var backcolor = target.style.backgroundColor;
+			// render it
+			tableCount = tableCount + 1;
+			_reactDom2.default.render(_react2.default.createElement(GrabBox, { bgcolor: backcolor, table: 'true', shape: 'circle', radius: '40' }), document.getElementById(idName));
 
-	    // Now make it to the parents x y
-	    // Get parents x y
-	    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-	    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+			// Now make it to the parents x y
+			// Get parents x y
+			var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+			var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-	    // Get the element that we just created
-	    var layoutElement = document.getElementById(idName);
-	    var createdElement = layoutElement.children[0].children[0];
+			// Get the element that we just created
+			var layoutElement = document.getElementById(idName);
+			var createdElement = layoutElement.getElementsByClassName('resize-container')[0].getElementsByClassName('resize-drag')[0];
 
-	    // translate the element
-	    createdElement.style.webkitTransform = createdElement.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-	    // update the posiion attributes
-	    createdElement.setAttribute('data-x', x);
-	    createdElement.setAttribute('data-y', y);
-	    createdElement.getElementsByClassName('pos')[0].style.display = "inline-block";
-	    createdElement.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
-	  }
+			moveToLocation(createdElement, x, y);
+			// Make drag opacity effect
+			createdElement.style.opacity = "0.9";
+			createdElement.getElementsByClassName('pos')[0].style.display = "inline-block";
+			createdElement.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+		}
 	}
 
 	function dragMoveListener(event) {
-	  // If it is a generator, drag the element that we just create on dragStart, if not drag the current element
-	  var target = event.target;
+		// If it is a generator, drag the element that we just create on dragStart, if not drag the current element
+		var target = event.target;
 
-	  // If it is a generator
-	  if (target.classList.contains('generator')) {
-	    // Get the element that just created
-	    var layoutElement = document.getElementById(getIdName());
-	    target = layoutElement.children[0].children[0];
+		// If it is a generator
+		if (target.classList.contains('generator')) {
+			// Get the element that just created
+			var layoutElement = document.getElementById(getTableId());
+			target = layoutElement.children[0].children[0];
 
-	    // Start to move it
-	    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-	    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+			// Start to move it
+			var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+			var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-	    // translate the element
-	    target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+			moveToLocation(target, x, y);
+			target.getElementsByClassName('pos')[0].style.display = "inline-block";
+			target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+		}
+		// If it is a normal element
+		else if (target.classList.contains('draggable')) {
+				// keep the dragged position in the data-x/data-y attributes
+				var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+				var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-	    // update the posiion attributes
-	    target.setAttribute('data-x', x);
-	    target.setAttribute('data-y', y);
-	    target.getElementsByClassName('pos')[0].style.display = "inline-block";
-	    target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
-	  }
-	  // If it is a normal element
-	  else {
-	      // keep the dragged position in the data-x/data-y attributes
-	      var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-	      var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+				moveToLocation(target, x, y);
+				target.getElementsByClassName('pos')[0].style.display = "inline-block";
+				target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
+			}
 
-	      // translate the element
-	      target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+		// If it is table, move it's layout together
+		if (target.classList.contains('table')) {
+			var child = target.parentElement.parentElement.children;
+			for (var i = 1; i < child.length; i++) {
+				var obj = child[i].getElementsByClassName('resize-container')[0].getElementsByClassName('resize-drag')[0];
+				var x = (parseFloat(obj.getAttribute('data-x')) || 0) + event.dx;
+				var y = (parseFloat(obj.getAttribute('data-y')) || 0) + event.dy;
 
-	      // update the posiion attributes
-	      target.setAttribute('data-x', x);
-	      target.setAttribute('data-y', y);
-	      target.getElementsByClassName('pos')[0].style.display = "inline-block";
-	      target.getElementsByClassName('pos')[0].innerHTML = Math.round(x * 100) / 100 + "," + Math.round(y * 100) / 100;
-	    }
+				moveToLocation(obj, x, y);
+			}
+		}
 	}
 
 	function dragEndListener(event) {
-	  // If it is a generator then remove the pos of the created element, if not remove the current position
-	  var target = event.target;
-	  if (target.classList.contains('generator')) {
-	    var layoutElement = document.getElementById(getIdName());
-	    // var target = layoutElement.children[0].children[0];
-	    layoutElement.getElementsByClassName('pos')[0].style.display = "none";
-	    // target.getElementsByClassName('pos')[0].style.display = "none";  
-	  } else {
-	    target.getElementsByClassName('pos')[0].style.display = "none";
-	  }
+		// If it is a generator then remove the pos of the created element, if not remove the current position
+		var target = event.target;
+		if (target.classList.contains('generator')) {
+			var layoutElement = document.getElementById(getTableId());
+			layoutElement.getElementsByClassName('pos')[0].style.display = "none";
+			layoutElement.getElementsByClassName('resize-drag')[0].style.opacity = "1";
+		} else {
+			target.getElementsByClassName('pos')[0].style.display = "none";
+		}
 	}
+
 	// this is used later in the resizing and gesture demos
 	window.dragMoveListener = dragMoveListener;
+
 	////////////////////////////////////////////////////////
 	////// Drop Event Listener /////////////////////////////////
 	////////////////////////////////////////////////////////
-
 	function dropActiveListener(event) {}
 	function dropEnterListener(event) {}
 	function dropLeaveListener(event) {}
 	function dropListener(event) {
-	  var dragElement = event.relatedTarget,
-	      dropElement = event.target;
+		var dragElement = event.relatedTarget;
+		var dropElement = event.target;
+		if (dropElement.classList.contains('receive')) {
+			var dropx = dropElement.getAttribute('data-x');
+			var dropy = dropElement.getAttribute('data-y');
 
-	  var dropx = dropElement.getAttribute('data-x');
-	  var dropy = dropElement.getAttribute('data-y');
+			dragElement.style.transition = "all 0.2s ease-in";
+			moveToLocation(dragElement, dropx, dropy);
+			console.log(dropx);
+			console.log(dropy);
 
-	  dragElement.style.transition = "all 0.2s ease-in";
-
-	  dragElement.style.webkitTransform = dragElement.style.transform = 'translate(' + dropx + 'px, ' + dropy + 'px)';
-
-	  dragElement.setAttribute('data-x', dropx);
-	  dragElement.setAttribute('data-y', dropy);
-	  dragElement.getElementsByClassName('pos')[0].style.display = "inline-block";
-	  dragElement.getElementsByClassName('pos')[0].innerHTML = Math.round(dropx * 100) / 100 + "," + Math.round(dropy * 100) / 100;
-	  setTimeout(function () {
-	    dragElement.style.transition = "";
-	  }, 400);
+			dragElement.getElementsByClassName('pos')[0].style.display = "inline-block";
+			dragElement.getElementsByClassName('pos')[0].innerHTML = Math.round(dropx * 100) / 100 + "," + Math.round(dropy * 100) / 100;
+			setTimeout(function () {
+				dragElement.style.transition = "";
+			}, 400);
+		}
 	}
 	function dropDeactiveListener(event) {}
-
 	////////////////////////////////////////////////////////
 	/////// Self-Define Function ///////////////////////////
 	////////////////////////////////////////////////////////
 	// Return the distance between 2 point
 	function distancePoint(x1, y1, x2, y2) {
-	  var tempx = x1 - x2;
-	  var tempy = y1 - y2;
-	  return Math.sqrt(tempx * tempx + tempy * tempy);
+		var tempx = x1 - x2;
+		var tempy = y1 - y2;
+		return Math.sqrt(tempx * tempx + tempy * tempy);
 	}
 
 	// Return the center of a circle in array 
 	// x and y is the position of the left-most point
 	function getCircleCenter(x, y, width, height) {
-	  var centerx = x + width / 2;
-	  var centery = (y + height) / 2;
-	  return [centerx, centery];
+		var centerx = x + width / 2;
+		var centery = (y + height) / 2;
+		return [centerx, centery];
 	}
-	function getIdName() {
-	  return 'layout' + (count - 1); //this one is idName -1 
+	function getTableId() {
+		return 'table' + (tableCount - 1); //this one is idName -1 because,usually we get the tablecount only we +1 (render)
+	}
+	function getLayoutId() {
+		return 'layout' + (layoutCount - 1); //this one is idName -1 
+	}
+	function moveToLocation(obj, x, y) {
+		obj.style.webkitTransform = obj.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+		obj.setAttribute('data-x', x);
+		obj.setAttribute('data-y', y);
+	}
+	function radianToDegree(degree) {
+		return degree * 180 / Math.PI;
+	}
+	function degreeToRadian(radian) {
+		return radian * Math.PI / 180;
+	}
+	function isLayout(value) {
+		return value.includes('layout');
 	}
 
 /***/ },
@@ -20078,7 +20159,7 @@
 
 
 	// module
-	exports.push([module.id, ".pos {\n  min-width: 70px;\n  min-height: 16px;\n  background-color: #282828;\n  font-size: 12px;\n  color: white;\n  text-align: center;\n  border-radius: 6px;\n  padding: 5px 0;\n  position: absolute;\n  z-index: 1;\n  bottom: 100%;\n  left: 50%;\n  margin-left: -40px;\n  margin-bottom: 1px;\n  display: none; }\n\n.size {\n  position: absolute;\n  bottom: 50%;\n  right: 50%; }\n\n.resize-drag {\n  color: white;\n  font-size: 16px;\n  border-radius: 4%;\n  margin: 30px 20px;\n  width: 100px;\n  height: 80px;\n  position: absolute;\n  overflow: visible; }\n\n.resize-drag:active,\n.resize-drag:focus {\n  opacity: 0.9; }\n\n.resize-container {\n  width: 100%;\n  height: auto; }\n", ""]);
+	exports.push([module.id, ".pos {\n  min-width: 70px;\n  min-height: 16px;\n  background-color: #282828;\n  font-size: 12px;\n  color: white;\n  text-align: center;\n  border-radius: 6px;\n  padding: 5px 0;\n  position: absolute;\n  z-index: 1;\n  bottom: 100%;\n  left: 50%;\n  margin-left: -40px;\n  margin-bottom: 1px;\n  display: none; }\n\n.size {\n  position: absolute;\n  bottom: 50%;\n  right: 50%; }\n\n.resize-drag {\n  color: white;\n  font-size: 16px;\n  border-radius: 4%;\n  width: 100px;\n  height: 80px;\n  position: absolute;\n  overflow: visible; }\n\n.resize-drag:active,\n.resize-drag:focus {\n  opacity: 0.9; }\n\n.resize-container {\n  width: 100%;\n  height: auto; }\n", ""]);
 
 	// exports
 
@@ -22571,6 +22652,46 @@
 		// send back the fixed css
 		return fixedCss;
 	};
+
+
+/***/ },
+/* 169 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(170);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(167)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!../../../../node_modules/css-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.scss", function() {
+				var newContent = require("!!../../../../node_modules/css-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 170 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(162)(undefined);
+	// imports
+
+
+	// module
+	exports.push([module.id, "/*Start CSS Reseter*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n* {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  outline: 0;\n  font-size: 100%;\n  vertical-align: baseline;\n  background: transparent; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\nh1 {\n  margin-top: 0; }\n\n/*End CSS Reseter*/\nbody {\n  box-sizing: border-box;\n  font-family: 'Inconsolata'; }\n\n#rightsidebar {\n  position: fixed;\n  right: 0;\n  top: 60px;\n  height: 90%;\n  width: 280px;\n  background-color: rgba(240, 240, 240, 0.5); }\n\n#rightsidebar:hover {\n  -webkit-transition: all 0.2s ease-in-out;\n  -moz-transition: all 0.2s ease-in-out;\n  -ms-transition: all 0.2s ease-in-out;\n  -o-transition: all 0.2s ease-in-out;\n  transition: all 0.2s ease-in-out;\n  box-shadow: -2px 2px 6px rgba(40, 40, 40, 0.2); }\n\n.guest-wrapper {\n  position: absolute; }\n\n.menu-box {\n  position: fixed;\n  box-sizing: border-box;\n  padding: 5px;\n  width: 100%;\n  height: 49px;\n  z-index: 99999;\n  color: black;\n  -webkit-transition: all 0.2s ease-in-out;\n  -moz-transition: all 0.2s ease-in-out;\n  -ms-transition: all 0.2s ease-in-out;\n  -o-transition: all 0.2s ease-in-out;\n  transition: all 0.2s ease-in-out;\n  box-shadow: -2px 2px 6px rgba(40, 40, 40, 0.2); }\n\n.menu a {\n  padding: 5px 10px 5px 10px;\n  border-radius: 20px;\n  -webkit-transition: 0.4s ease-in;\n  -moz-transition: 0.4s ease-in;\n  -o-transition: 0.4s ease-in;\n  transition: 0.4s ease-in; }\n\n.menu {\n  float: right;\n  margin-right: 100px; }\n\n.menu ul {\n  margin: 0;\n  display: inline-flex;\n  list-style-type: none; }\n\n.menu ul li {\n  min-width: 160px;\n  text-align: center;\n  -webkit-transition: all 0.4s ease-in-out;\n  -moz-transition: all 0.4s ease-in-out;\n  -o-transition: all 0.4s ease-in-out;\n  transition: all 0.4s ease-in-out; }\n\n.menu ul li:hover {\n  background-color: #00bcd4;\n  color: white;\n  border-radius: 100px;\n  box-shadow: -2px 2px 6px rgba(40, 40, 40, 0.2);\n  margin-top: 3px; }\n\n.menu ul li a {\n  padding: 10px 5px 10px 5px;\n  float: left;\n  width: 100%; }\n", ""]);
+
+	// exports
 
 
 /***/ }

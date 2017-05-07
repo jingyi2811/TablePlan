@@ -1,6 +1,5 @@
 // Variable //
 $Black40 : rgb(40,40,40);
-
 .pos{
   min-width: 70px;
   min-height: 16px;
@@ -29,10 +28,9 @@ $Black40 : rgb(40,40,40);
   color: white;
   font-size: 16px;
   border-radius: 4%;
-  margin: 30px 20px;
   width: 100px;
   height: 80px;
-  position: absolute;
+  position : absolute;
   overflow: visible; 
 }
 .resize-drag:active,
