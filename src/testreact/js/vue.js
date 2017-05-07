@@ -36,6 +36,7 @@
     return val;
   }
 
+  
   /**
    * Delete a property and trigger change if necessary.
    *
